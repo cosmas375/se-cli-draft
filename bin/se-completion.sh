@@ -1,14 +1,14 @@
 _se_completions()
 {
- 	COMPREPLY=()
+    COMPREPLY=()
 
- 	npm_command_options="build serve"
+    npm_command_options="build serve"
     npm_command="${COMP_WORDS[1]}"
 
- 	if [[ ${COMP_CWORD} -eq 1 ]] ; then
- 		COMPREPLY=( $(compgen -W "${npm_command_options}" -- ${npm_command}) )
- 		return 0
- 	fi
+    if [[ ${COMP_CWORD} -eq 1 ]] ; then
+        COMPREPLY=( $(compgen -W "${npm_command_options}" -- ${npm_command}) )
+        return 0
+    fi
 
     frontend_sections_options=$(grep -o '"[a-zA-Z0-9]*":[^{]*{' ./sections.json | grep '[a-zA-Z0-9]' | tr -d '{ "\n' | sed 's/:/ /g')
 
