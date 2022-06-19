@@ -10,7 +10,7 @@ _se_completions()
  		return 0
  	fi
 
-    frontend_sections_options=$(sh $(dirname "$0")/bin/get_sections_list.sh)
+    frontend_sections_options=$(grep -o '"[a-zA-Z0-9]*":[^{]*{' ./sections.json | grep '[a-zA-Z0-9]' | tr -d '{ "\n' | sed 's/:/ /g')
 
     COMPREPLY=( $(compgen -W "${frontend_sections_options}" -- ${COMP_WORDS[COMP_CWORD]}) )
 }
