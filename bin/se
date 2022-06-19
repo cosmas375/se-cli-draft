@@ -1,0 +1,48 @@
+npm_command=$1
+first_section=$2
+
+if [ -z "$npm_command" ]; then
+    echo 'Error: npm command is not specified'
+    exit 1
+fi
+
+case $npm_command in
+    serve)
+        if [ -z "$first_section" ]; then
+            echo 'Error: frontend section is not specified'
+            exit 1
+        else
+            echo "SECTION=${first_section} npm run ${npm_command}"
+            exit 0
+        fi
+        ;;
+
+    build)
+        if [ -z "$first_section" ]; then
+            echo 'sh ci-build.sh'
+        else
+            build_command=''
+            build_sequence=''
+            get_npm_build_script_sequence () {
+                build_sequence="SECTION=$2 npm run $1"
+            }
+            for section in "${@:2}"
+            do
+                get_npm_build_script_sequence $npm_command $section
+
+                if [ -z "$build_command" ]; then
+                    build_command=$build_sequence
+                else
+                    build_command="${build_command} && ${build_sequence}"
+                fi
+            done
+            echo "${build_command} && node buil-assets-mapping.js"
+        fi
+        exit 0
+        ;;
+
+    *)
+        echo "Error: unknown command '${npm_command}'"
+        exit 1
+        ;;
+esac
