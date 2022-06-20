@@ -1,14 +1,37 @@
-npm_command=$1
-first_section=$2
+ARGS=()
+threads_count=""
 
-if [ -z "$npm_command" ]; then
+while [ $# -gt 0 ]
+do
+    unset OPTIND
+    unset OPTARG
+    while getopts t: option
+    do
+        case $option in
+            t)
+                threads_count="$OPTARG"
+                ;;
+        esac
+    done
+    shift $((OPTIND-1))
+    ARGS+=("$1")
+    shift
+done
+
+npm_command="${ARGS[0]}"
+sections=(${ARGS[@]:1})
+first_section="${sections[0]}"
+
+if [ -z "$npm_command" ]
+then
     echo 'Error: npm command is not specified'
     exit 1
 fi
 
 case $npm_command in
     serve)
-        if [ -z "$first_section" ]; then
+        if [ -z "$first_section" ]
+        then
             echo 'Error: frontend section is not specified'
             exit 1
         else
@@ -18,24 +41,34 @@ case $npm_command in
         ;;
 
     build)
-        if [ -z "$first_section" ]; then
-            echo 'sh ci-build.sh'
+        if [ -z "$first_section" ]
+        then
+            if [ -z "$threads_count" ]
+            then
+                echo "npm run build"
+            else
+                echo "PARTS=${threads_count} npm run build"
+            fi
         else
             build_command=''
             build_sequence=''
+
             get_npm_build_script_sequence () {
                 build_sequence="SECTION=$2 npm run $1"
             }
-            for section in "${@:2}"
+
+            for section in "${sections[@]}"
             do
                 get_npm_build_script_sequence $npm_command $section
 
-                if [ -z "$build_command" ]; then
+                if [ -z "$build_command" ]
+                then
                     build_command=$build_sequence
                 else
                     build_command="${build_command} && ${build_sequence}"
                 fi
             done
+
             echo "${build_command} && node buil-assets-mapping.js"
         fi
         exit 0
