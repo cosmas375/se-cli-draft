@@ -1,6 +1,21 @@
+FRONT_PATH=''
+SE_FRONT_DIRECTORY='SE_FRONT_DIRECTORY'
+if test -f ~/.bashrc
+then
+    FRONT_PATH=$(grep "^$SE_FRONT_DIRECTORY=" ~/.bashrc | sed "s/$SE_FRONT_DIRECTORY=//g")
+elif test -f ~/.zshrc
+then
+    FRONT_PATH$(grep "^$SE_FRONT_DIRECTORY=" ~/.zshrc | sed "s/$SE_FRONT_DIRECTORY=//g")
+fi
+CURRENT_LOCATION=`pwd`
+cd "$FRONT_PATH"
+get_back() {
+    cd "$CURRENT_LOCATION"
+}
+
+
 ARGS=()
 threads_count=""
-
 while [ $# -gt 0 ]
 do
     unset OPTIND
@@ -8,8 +23,11 @@ do
     while getopts t: option
     do
         case $option in
-            t)
+            t|threads)
                 threads_count="$OPTARG"
+                ;;
+            h|help)
+                echo "help"
                 ;;
         esac
     done
@@ -18,6 +36,7 @@ do
     shift
 done
 
+
 npm_command="${ARGS[0]}"
 sections=(${ARGS[@]:1})
 first_section="${sections[0]}"
@@ -25,7 +44,7 @@ first_section="${sections[0]}"
 if [ -z "$npm_command" ]
 then
     echo 'Error: npm command is not specified'
-    exit 1
+    return 1
 fi
 
 case $npm_command in
@@ -33,10 +52,10 @@ case $npm_command in
         if [ -z "$first_section" ]
         then
             echo 'Error: frontend section is not specified'
-            exit 1
+            return 1
         else
             echo "SECTION=${first_section} npm run ${npm_command}"
-            exit 0
+            return 0
         fi
         ;;
 
@@ -71,11 +90,13 @@ case $npm_command in
 
             echo "${build_command} && node buil-assets-mapping.js"
         fi
-        exit 0
+        return 0
         ;;
 
     *)
         echo "Error: unknown command '${npm_command}'"
-        exit 1
+        return 1
         ;;
 esac
+
+get_back
