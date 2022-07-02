@@ -1,12 +1,14 @@
-FRONT_PATH=''
-SE_FRONT_DIRECTORY='SE_FRONT_DIRECTORY'
-if test -f ~/.bashrc
+if test -e ~/.bashrc
 then
-    FRONT_PATH=$(grep "^$SE_FRONT_DIRECTORY=" ~/.bashrc | sed "s/$SE_FRONT_DIRECTORY=//g")
-elif test -f ~/.zshrc
+    CONFIG_PATH=~/.bashrc
+elif test -e ~/.zshrc
 then
-    FRONT_PATH$(grep "^$SE_FRONT_DIRECTORY=" ~/.zshrc | sed "s/$SE_FRONT_DIRECTORY=//g")
+    CONFIG_PATH=~/.zshrc
 fi
+SE_FRONT_DIRECTORY='SE_FRONT_DIRECTORY'
+FRONT_PATH=$(grep "^$SE_FRONT_DIRECTORY=" $CONFIG_PATH | sed "s/$SE_FRONT_DIRECTORY=//g")
+
+
 CURRENT_LOCATION=`pwd`
 cd "$FRONT_PATH"
 get_back() {
@@ -44,18 +46,22 @@ first_section="${sections[0]}"
 if [ -z "$npm_command" ]
 then
     echo 'Error: npm command is not specified'
-    return 1
+    exit 1
 fi
 
 case $npm_command in
+    -h|--help)
+        echo TODO: help
+        ;;
+
     serve)
         if [ -z "$first_section" ]
         then
             echo 'Error: frontend section is not specified'
-            return 1
+            exit 1
         else
             echo "SECTION=${first_section} npm run ${npm_command}"
-            return 0
+            exit 0
         fi
         ;;
 
@@ -66,7 +72,7 @@ case $npm_command in
             then
                 echo "npm run build"
             else
-                echo "PARTS=${threads_count} npm run build"
+                echo "PARTS=${threads_count} node build.js"
             fi
         else
             build_command=''
@@ -90,12 +96,12 @@ case $npm_command in
 
             echo "${build_command} && node buil-assets-mapping.js"
         fi
-        return 0
+        exit 0
         ;;
 
     *)
         echo "Error: unknown command '${npm_command}'"
-        return 1
+        exit 1
         ;;
 esac
 

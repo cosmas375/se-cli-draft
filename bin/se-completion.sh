@@ -1,40 +1,43 @@
-FRONT_PATH=''
-SE_FRONT_DIRECTORY='SE_FRONT_DIRECTORY'
-if test -f ~/.bashrc
+if test -e ~/.bashrc
 then
-    FRONT_PATH=$(grep "^$SE_FRONT_DIRECTORY=" ~/.bashrc | sed "s/$SE_FRONT_DIRECTORY=//g")
-elif test -f ~/.zshrc
+    CONFIG_PATH=~/.bashrc
+elif test -e ~/.zshrc
 then
-    FRONT_PATH=$(grep "^$SE_FRONT_DIRECTORY=" ~/.zshrc | sed "s/$SE_FRONT_DIRECTORY=//g")
+    CONFIG_PATH=~/.zshrc
 fi
+
+SE_FRONT_DIRECTORY='SE_FRONT_DIRECTORY'
+FRONT_PATH=$(grep "^$SE_FRONT_DIRECTORY=" $CONFIG_PATH | sed "s/$SE_FRONT_DIRECTORY=//g")
 SECTIONS_JSON_PATH="$FRONT_PATH/sections.json"
 
 _se_completions()
 {
     COMPREPLY=()
 
-    npm_command_options="build serve"
     npm_command="${COMP_WORDS[1]}"
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
 
     if [[ ${COMP_CWORD} -eq 1 ]]
     then
-        COMPREPLY=( $(compgen -W "${npm_command_options}" -- ${npm_command}) )
+        if [[ ${cur} == -* ]]
+        then
+            COMPREPLY=( $(compgen -W "-h --help" -- ${cur}) )
+        else
+            COMPREPLY=( $(compgen -W 'build serve' -- ${npm_command}) )
+        fi
         return 0
     fi
 
-    if [[ ${COMP_WORDS[COMP_CWORD]} == -* ]]
+    if [[ ${prev} == 'build' && ${cur} == -* ]]
     then
-        COMPREPLY=( $(compgen -W "-t -h --threads --help" -- ${cur}) )
+        COMPREPLY=( $(compgen -W "-t --threads" -- ${cur}) )
         return 0
     fi
 
     case $prev in
-        -h|--help)
-            return 0
-            ;;
         -t|--threads)
+            COMPREPLY=( $(compgen -W "4" -- ${cur}) )
             return 0
             ;;
     esac
